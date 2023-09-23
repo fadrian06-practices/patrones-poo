@@ -1,4 +1,4 @@
-```
+```java
 // La clase creadora declara el método fábrica que debe devolver
 // un objeto de una clase de producto. Normalmente, las
 // subclases de la creadora proporcionan la implementación de
