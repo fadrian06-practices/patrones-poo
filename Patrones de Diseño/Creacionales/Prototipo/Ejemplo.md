@@ -1,150 +1,96 @@
 ```java
-// El uso del patrón Builder sólo tiene sentido cuando tus
-// productos son bastante complejos y requieren una
-// configuración extensiva. Los dos siguientes productos están
-// relacionados, aunque no tienen una interfaz común.
-class Car is
-    // Un coche puede tener un GPS, una computadora de
-    // navegación y cierto número de asientos. Los distintos
-    // modelos de coches (deportivo, SUV, descapotable) pueden
-    // tener distintas características instaladas o habilitadas.
+// Prototipo base.
+abstract class Shape is
+    field X: int
+    field Y: int
+    field color: string
 
-class Manual is
-    // Cada coche debe contar con un manual de usuario que se
-    // corresponda con la configuración del coche y explique
-    // todas sus características.
-
-
-// La interfaz constructora especifica métodos para crear las
-// distintas partes de los objetos del producto.
-interface Builder is
-    method reset()
-    method setSeats(...)
-    method setEngine(...)
-    method setTripComputer(...)
-    method setGPS(...)
-
-// Las clases constructoras concretas siguen la interfaz
-// constructora y proporcionan implementaciones específicas de
-// los pasos de construcción. Tu programa puede tener multitud
-// de variaciones de objetos constructores, cada una de ellas
-// implementada de forma diferente.
-class CarBuilder implements Builder is
-    private field car:Car
-
-    // Una nueva instancia de la clase constructora debe
-    // contener un objeto de producto en blanco que utiliza en
-    // el montaje posterior.
-    constructor CarBuilder() is
-        this.reset()
-
-    // El método reset despeja el objeto en construcción.
-    method reset() is
-        this.car = new Car()
-
-    // Todos los pasos de producción funcionan con la misma
-    // instancia de producto.
-    method setSeats(...) is
-        // Establece la cantidad de asientos del coche.
-
-    method setEngine(...) is
-        // Instala un motor específico.
-
-    method setTripComputer(...) is
-        // Instala una computadora de navegación.
-
-    method setGPS(...) is
-        // Instala un GPS.
-
-    // Los constructores concretos deben proporcionar sus
-    // propios métodos para obtener resultados. Esto se debe a
-    // que varios tipos de objetos constructores pueden crear
-    // productos completamente diferentes de los cuales no todos
-    // siguen la misma interfaz. Por lo tanto, dichos métodos no
-    // pueden declararse en la interfaz constructora (al menos
-    // no en un lenguaje de programación de tipado estático).
-    //
-    // Normalmente, tras devolver el resultado final al cliente,
-    // una instancia constructora debe estar lista para empezar
-    // a generar otro producto. Ese es el motivo por el que es
-    // práctica común invocar el método reset al final del
-    // cuerpo del método `getProduct`. Sin embargo, este
-    // comportamiento no es obligatorio y puedes hacer que tu
-    // objeto constructor espere una llamada reset explícita del
-    // código cliente antes de desechar el resultado anterior.
-    method getProduct():Car is
-        product = this.car
-        this.reset()
-        return product
-
-// Al contrario que otros patrones creacionales, Builder te
-// permite construir productos que no siguen una interfaz común.
-class CarManualBuilder implements Builder is
-    private field manual:Manual
-
-    constructor CarManualBuilder() is
-        this.reset()
-
-    method reset() is
-        this.manual = new Manual()
-
-    method setSeats(...) is
-        // Documenta las características del asiento del coche.
-
-    method setEngine(...) is
-        // Añade instrucciones del motor.
-
-    method setTripComputer(...) is
-        // Añade instrucciones de la computadora de navegación.
-
-    method setGPS(...) is
-        // Añade instrucciones del GPS.
-
-    method getProduct():Manual is
-        // Devuelve el manual y rearma el constructor.
-
-
-// El director sólo es responsable de ejecutar los pasos de
-// construcción en una secuencia particular. Resulta útil cuando
-// se crean productos de acuerdo con un orden o configuración
-// específicos. En sentido estricto, la clase directora es
-// opcional, ya que el cliente puede controlar directamente los
-// objetos constructores.
-class Director is
-    // El director funciona con cualquier instancia de
-    // constructor que le pase el código cliente. De esta forma,
-    // el código cliente puede alterar el tipo final del
-    // producto recién montado. El director puede construir
-    // multitud de variaciones de producto utilizando los mismos
-    // pasos de construcción.
-    method constructSportsCar(builder: Builder) is
-        builder.reset()
-        builder.setSeats(2)
-        builder.setEngine(new SportEngine())
-        builder.setTripComputer(true)
-        builder.setGPS(true)
-
-    method constructSUV(builder: Builder) is
+    // Un constructor normal.
+    constructor Shape() is
         // ...
 
+    // El constructor prototipo. Un nuevo objeto se inicializa
+    // con valores del objeto existente.
+    constructor Shape(source: Shape) is
+        this()
+        this.X = source.X
+        this.Y = source.Y
+        this.color = source.color
 
-// El código cliente crea un objeto constructor, lo pasa al
-// director y después inicia el proceso de construcción. El
-// resultado final se extrae del objeto constructor.
+    // La operación clonar devuelve una de las subclases de
+    // Shape (Forma).
+    abstract method clone():Shape
+
+
+// Prototipo concreto. El método de clonación crea un nuevo
+// objeto y lo pasa al constructor. Hasta que el constructor
+// termina, tiene una referencia a un nuevo clon. De este modo
+// nadie tiene acceso a un clon a medio terminar. Esto garantiza
+// la consistencia del resultado de la clonación.
+class Rectangle extends Shape is
+    field width: int
+    field height: int
+
+    constructor Rectangle(source: Rectangle) is
+        // Para copiar campos privados definidos en la clase
+        // padre es necesaria una llamada a un constructor
+        // padre.
+        super(source)
+        this.width = source.width
+        this.height = source.height
+
+    method clone():Shape is
+        return new Rectangle(this)
+
+
+class Circle extends Shape is
+    field radius: int
+
+    constructor Circle(source: Circle) is
+        super(source)
+        this.radius = source.radius
+
+    method clone():Shape is
+        return new Circle(this)
+
+
+// En alguna parte del código cliente.
 class Application is
+    field shapes: array of Shape
 
-    method makeCar() is
-        director = new Director()
+    constructor Application() is
+        Circle circle = new Circle()
+        circle.X = 10
+        circle.Y = 10
+        circle.radius = 20
+        shapes.add(circle)
 
-        CarBuilder builder = new CarBuilder()
-        director.constructSportsCar(builder)
-        Car car = builder.getProduct()
+        Circle anotherCircle = circle.clone()
+        shapes.add(anotherCircle)
+        // La variable `anotherCircle` (otroCírculo) contiene
+        // una copia exacta del objeto `circle`.
 
-        CarManualBuilder builder = new CarManualBuilder()
-        director.constructSportsCar(builder)
+        Rectangle rectangle = new Rectangle()
+        rectangle.width = 10
+        rectangle.height = 20
+        shapes.add(rectangle)
 
-        // El producto final a menudo se extrae de un objeto
-        // constructor, ya que el director no conoce y no
-        // depende de constructores y productos concretos.
-        Manual manual = builder.getProduct()
+    method businessLogic() is
+        // Prototype es genial porque te permite producir una
+        // copia de un objeto sin conocer nada de su tipo.
+        Array shapesCopy = new Array of Shapes.
+
+        // Por ejemplo, no conocemos los elementos exactos de la
+        // matriz de formas. Lo único que sabemos es que son
+        // todas formas. Pero, gracias al polimorfismo, cuando
+        // invocamos el método `clonar` en una forma, el
+        // programa comprueba su clase real y ejecuta el método
+        // de clonación adecuado definido en dicha clase. Por
+        // eso obtenemos los clones adecuados en lugar de un
+        // grupo de simples objetos Shape.
+        foreach (s in shapes) do
+            shapesCopy.add(s.clone())
+
+        // La matriz `shapesCopy` contiene copias exactas del
+        // hijo de la matriz `shape`.
 ```
