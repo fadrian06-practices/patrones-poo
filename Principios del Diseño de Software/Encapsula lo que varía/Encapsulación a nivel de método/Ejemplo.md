@@ -1,4 +1,4 @@
-```
+```java
 method getOrderTotal(order) is
 	total = 0
 
@@ -16,7 +16,7 @@ method getOrderTotal(order) is
 > ANTES: el código de cálculo del impuesto está mezclado con el resto del código del método.
 ---
 
-```
+```java
 method getOrderTotal(order) is
 	total = 0
 

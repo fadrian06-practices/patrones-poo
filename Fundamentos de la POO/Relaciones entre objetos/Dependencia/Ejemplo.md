@@ -1,4 +1,4 @@
-```
+```java
 class Profesor is
 	field Estudiante estudiante
 	// ...
