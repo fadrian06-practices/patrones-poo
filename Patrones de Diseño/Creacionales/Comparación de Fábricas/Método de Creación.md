@@ -17,7 +17,7 @@ class Number {
     }
 
     public function next() {
-        return new Number ($this->value + 1);
+        return new Number($this->value + 1);
     }
 }
 ```

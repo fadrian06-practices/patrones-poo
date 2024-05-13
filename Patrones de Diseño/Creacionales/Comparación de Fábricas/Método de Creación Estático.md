@@ -26,8 +26,16 @@ class User {
 	}
 
 	public static function load($id) {
-		[$id, $name, $email, $phone] = DB::load_data('users', 'id', 'name', 'email', 'phone');
+		[$id, $name, $email, $phone] = DB::load_data(
+			'users',
+			'id',
+			'name',
+			'email',
+			'phone'
+		);
+
 		$user = new User($id, $name, $email, $phone);
+
 		return $user;
 	}
 }
